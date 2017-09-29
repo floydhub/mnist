@@ -1,6 +1,6 @@
 # Basic MNIST Example
 
-![Generated images from noise on LFW ds after 300 epochs](images/lfw-300epochs.gif)
+![MNIST samples](images/MNIST_samples.png)
 
 This project implements a beginner classification task on [MNIST](http://yann.lecun.com/exdb/mnist/) dataset with a [Convolutiona Neural Network(CNN or ConvNet)](https://en.wikipedia.org/wiki/Convolutional_neural_network) model. This is a porting of [pytorch/examples/mnist](https://github.com/pytorch/examples/tree/master/mnist) making it usables on [FloydHub](https://www.floydhub.com/).
 
@@ -42,9 +42,9 @@ optional arguments:
   --evaluate           evaluate a [pre]trained model
 ```
 
-## DCGAN Architecture
+## MNIST CNN Architecture
 
-![DCGAN](images/DCGan.png)
+![MNIST CNN](images/MNIST_CNN.png)
 
 ## Run on FloydHub
 
