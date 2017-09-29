@@ -6,11 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision.datasets import ImageFolder
-
 from PIL import Image
-# from torchvision.transforms import ToPILImage
-# import torchvision.utils as vutils
-
+import numpy as np
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 
@@ -21,7 +18,7 @@ parser.add_argument('--evalf', default="/eval/" ,help='path to evaluate sample')
 parser.add_argument('--outf', default='/output',
                     help='folder to output images and model checkpoints')
 parser.add_argument('--ckpf', default='',
-                    help="path to model checkpoint folder (to continue training)")
+                    help="path to model checkpoint file (to continue training)")
 parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
@@ -60,24 +57,27 @@ if args.cuda:
 
 # From MNIST to Tensor
 kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-train_loader = torch.utils.data.DataLoader(
-    # datasets.MNIST('../data', train=True, download=True,
-    datasets.MNIST(root=args.dataroot, train=True, download=True,
-                   transform=transforms.Compose([
-                       transforms.ToTensor(),
-                       transforms.Normalize((0.1307,), (0.3081,))
-                   ])),
-    batch_size=args.batch_size, shuffle=True, **kwargs)
-test_loader = torch.utils.data.DataLoader(
-    # datasets.MNIST('../data', train=False, transform=transforms.Compose([
-    datasets.MNIST(root=args.dataroot, train=False, transform=transforms.Compose([
-                       transforms.ToTensor(),
-                       transforms.Normalize((0.1307,), (0.3081,))
-                   ])),
-    batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
-# ConvNet -> Max_Pool -> RELU -> ConvNet -> Max_Pool -> RELU -> FC -> RELU -> FC -> SOFTMAX
+# Load MNIST only if training
+if args.train:
+    train_loader = torch.utils.data.DataLoader(
+        # datasets.MNIST('../data', train=True, download=True,
+        datasets.MNIST(root=args.dataroot, train=True, download=True,
+                       transform=transforms.Compose([
+                           transforms.ToTensor(),
+                           transforms.Normalize((0.1307,), (0.3081,))
+                       ])),
+        batch_size=args.batch_size, shuffle=True, **kwargs)
+    test_loader = torch.utils.data.DataLoader(
+        # datasets.MNIST('../data', train=False, transform=transforms.Compose([
+        datasets.MNIST(root=args.dataroot, train=False, transform=transforms.Compose([
+                           transforms.ToTensor(),
+                           transforms.Normalize((0.1307,), (0.3081,))
+                       ])),
+        batch_size=args.test_batch_size, shuffle=True, **kwargs)
+
 class Net(nn.Module):
+    """ConvNet -> Max_Pool -> RELU -> ConvNet -> Max_Pool -> RELU -> FC -> RELU -> FC -> SOFTMAX"""
     def __init__(self):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
@@ -101,12 +101,18 @@ if args.cuda:
 
 # Load checkpoint
 if args.ckpf != '':
-    model.load_state_dict(torch.load(args.ckpf))
+    if args.cuda:
+        model.load_state_dict(torch.load(args.ckpf))
+    else:
+        # Load GPU model on CPU
+        model.load_state_dict(torch.load(args.ckpf, map_location=lambda storage, loc: storage))
+        odel.cpu()
 
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
 
 def train(epoch):
+    """Training"""
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         if args.cuda:
@@ -125,6 +131,7 @@ def train(epoch):
 
 
 def test():
+    """Testing"""
     model.eval()
     test_loss = 0
     correct = 0
@@ -144,26 +151,37 @@ def test():
 
 
 def test_image():
-    # Load images from /eval/ subfolder and convert to greyscale
+    """Take images from args.evalf, process to be MNIST compliant
+    and classify them with MNIST ConvNet model"""
+    def get_images_name(folder):
+        """Create a generator to list images name at evaluation time"""
+        onlyfiles = [f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
+        for f in onlyfiles:
+            yield f
+
     def pil_loader(path):
+        """Load images from /eval/ subfolder, convert to greyscale and resized it as squared"""
         with open(path, 'rb') as f:
             with Image.open(f) as img:
-                return img.convert('L')
+                sqrWidth = np.ceil(np.sqrt(img.size[0]*img.size[1])).astype(int)
+                return img.convert('L').resize((sqrWidth, sqrWidth))
 
     eval_loader = torch.utils.data.DataLoader(ImageFolder(root=args.evalf, transform=transforms.Compose([
                        transforms.Scale(28),
+                       transforms.CenterCrop(28),
                        transforms.ToTensor(),
                        transforms.Normalize((0.1307,), (0.3081,))
-                   ]), loader=pil_loader), batch_size=1, shuffle=True, **kwargs)
+                   ]), loader=pil_loader), batch_size=1, **kwargs)
 
-    # print (img.size())
+    # Name generator
+    names = get_images_name(os.path.join(args.evalf, "images"))
     model.eval()
     for data, _ in eval_loader:
         if args.cuda:
             data = data.cuda()
         data = Variable(data, volatile=True)
         output = model(data)
-        print (output.data.max(1, keepdim=True)[1])
+        print ("Images: ", next(names), ", Classified as: ", output.data.max(1, keepdim=True)[1])
 
 # Train?
 if args.train:

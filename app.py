@@ -2,22 +2,16 @@
 Flask Serving
 This file is a sample flask app that can be used to test your model with an REST API.
 This app does the following:
-    - Look for a Zvector(n_samples is encoded in this file) parameter
-    - Returns the output file generated at /output
+    - Look for a Image and then process it to be MNIST compliant
+    - Returns the evaluation
 Additional configuration:
     - You can also choose the checkpoint file name to use as a request parameter
     - Parameter name: ckp
     - It is loaded from /model
 
-GET req:
-    paramrter:
-        - ckp, optional, load a specific chekcpoint from /model
-    no parameter:
-        - generate 1 image from random noise
-
 POST req:
     parameter:
-        - file, required, a serialized Zvector file(the number of images to return is encoded in this vector)
+        - file, required, a handwritten digit in [0-9] range
         - ckp, optional, load a specific chekcpoint from /model
 
 """
@@ -26,12 +20,19 @@ import torch
 from flask import Flask, send_file, request
 from werkzeug.exceptions import BadRequest
 from werkzeug.utils import secure_filename
-from dcgan import DCGAN
+from ConvNet import ConvNet
 
-ALLOWED_EXTENSIONS = set(['jpg, png'])
+ALLOWED_EXTENSIONS = set(['jpg', 'png', 'jpeg'])
 
 MODEL_PATH = '/input'
 print('Loading model from path: %s' % MODEL_PATH)
+
+EVAL_PATH = '/eval'
+# Is there the EVAL_PATH?
+try:
+    os.makedirs(EVAL_PATH)
+except OSError:
+    pass
 
 app = Flask('MNIST-Classifier')
 
@@ -39,37 +40,41 @@ app = Flask('MNIST-Classifier')
 # Return an Image
 @app.route('/<path:path>', methods=['POST'])
 def geneator_handler(path):
-    zvector = None
-    batchSize = 1
-    # Upload a serialized Zvector
-    if request.method == 'POST':
-        # DO things
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            return BadRequest("File not present in request")
-        file = request.files['file']
-        if file.filename == '':
-            return BadRequest("File name is not present in request")
-        if not allowed_file(file.filename):
-            return BadRequest("Invalid file type")
-        filename = secure_filename(file.filename)
-        input_filepath = os.path.join('/output', filename)
-        file.save(input_filepath)
-        # Load a Z vector and Retrieve the N of samples to generate
-        zvector = torch.load(input_filepath)
-        batchSize = zvector.size()[0]
+    """Upload an handwrittend digit image in range [0-9], then
+    preprocess and classify"""
+    # check if the post request has the file part
+    if 'file' not in request.files:
+        return BadRequest("File not present in request")
+    file = request.files['file']
+    if file.filename == '':
+        return BadRequest("File name is not present in request")
+    if not allowed_file(file.filename):
+        return BadRequest("Invalid file type")
+    filename = secure_filename(file.filename)
+    image_folder = os.path.join(EVAL_PATH, "images")
+    # Create dir /eval/images
+    try:
+        os.makedirs(image_folder)
+    except OSError:
+        pass
+    # Save Image to process
+    input_filepath = os.path.join(image_folder, filename)
+    file.save(input_filepath)
+    # Get ckp
+    checkpoint = request.form.get("ckp") or "mnist_convnet_model_epoch_10.pth" # FIX to
 
-    checkpoint = request.form.get("ckp") or "netG_epoch_99.pth"
-    # Check for cuda availability
-    if torch.cuda.is_available():
-        # GPU and cuda
-        Generator = DCGAN(netG=os.path.join(MODEL_PATH, checkpoint), zvector=zvector, batchSize=batchSize, ngpu=1, cuda=True)
-    else:
-        # CPU
-        Generator = DCGAN(netG=os.path.join(MODEL_PATH, checkpoint), zvector=zvector, batchSize=batchSize, ngpu=0)
-    Generator.build_model()
-    Generator.generate()
-    return send_file(OUTPUT_PATH, mimetype='image/png')
+    # Preprocess, Build and Evaluate
+    Model = ConvNet()
+    Model.image_preprocessing()
+    Model.build_model()
+    pred = Model.classify()
+
+    # Return classification and remove uploaded file
+    # output = "Images: " + file.filename + ", Classified as: " + pred.data.max(1, keepdim=True)[1]
+    output = "Images: {file}, Classified as {pred}".format(file=file.filename,
+        pred=pred.data.max(1, keepdim=True)[1])
+    os.remove(input_filepath)
+    return output
 
 
 def allowed_file(filename):
