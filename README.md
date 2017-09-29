@@ -6,7 +6,7 @@ This project implements a beginner classification task on [MNIST](http://yann.le
 
 ## Usage
 
-Local enviroment and training(**no required on FloydHub**):
+Set local enviroment for training(*no required on FloydHub*):
 
 ```bash
 pip install -r requirements.txt
