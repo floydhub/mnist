@@ -2,7 +2,7 @@
 
 ![MNIST samples](images/MNIST_samples.png)
 
-This project implements a beginner classification task on [MNIST](http://yann.lecun.com/exdb/mnist/) dataset with a [Convolutiona Neural Network(CNN or ConvNet)](https://en.wikipedia.org/wiki/Convolutional_neural_network) model. This is a porting of [pytorch/examples/mnist](https://github.com/pytorch/examples/tree/master/mnist) making it usables on [FloydHub](https://www.floydhub.com/).
+This project implements a beginner classification task on [MNIST](http://yann.lecun.com/exdb/mnist/) dataset with a [Convolutional Neural Network(CNN or ConvNet)](https://en.wikipedia.org/wiki/Convolutional_neural_network) model. This is a porting of [pytorch/examples/mnist](https://github.com/pytorch/examples/tree/master/mnist) making it usables on [FloydHub](https://www.floydhub.com/).
 
 ## Usage
 
@@ -131,7 +131,14 @@ once you are done testing, **remember to shutdown the job!**
 
 ## More resources
 
-Some useful resources on MNIST:
+Some useful resources on MNIST and ConvNet:
+
+- [MNIST](http://yann.lecun.com/exdb/mnist/)
+- [Colah's blog](https://colah.github.io/posts/2014-10-Visualizing-MNIST/)
+- [Deep Learning without a PhD](https://codelabs.developers.google.com/codelabs/cloud-tensorflow-mnist/#0)
+- [How Convolutional Neural Networks work - Brandon Rohrer](https://youtu.be/FmpDIaiMIeA)
+- [Stanford CS231n](https://cs231n.github.io/convolutional-networks/)
+- [Stanford CS231n Winter 2016 - Karpathy](https://youtu.be/NfnWJUyUJYU)
 
 ## Contributing
 
