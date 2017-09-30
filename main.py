@@ -106,7 +106,7 @@ if args.ckpf != '':
     else:
         # Load GPU model on CPU
         model.load_state_dict(torch.load(args.ckpf, map_location=lambda storage, loc: storage))
-        odel.cpu()
+        model.cpu()
 
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
