@@ -135,7 +135,6 @@ Some useful resources on MNIST and ConvNet:
 
 - [MNIST](http://yann.lecun.com/exdb/mnist/)
 - [Colah's blog](https://colah.github.io/posts/2014-10-Visualizing-MNIST/)
-- [Deep Learning without a PhD](https://codelabs.developers.google.com/codelabs/cloud-tensorflow-mnist/#0)
 - [How Convolutional Neural Networks work - Brandon Rohrer](https://youtu.be/FmpDIaiMIeA)
 - [Stanford CS231n](https://cs231n.github.io/convolutional-networks/)
 - [Stanford CS231n Winter 2016 - Karpathy](https://youtu.be/NfnWJUyUJYU)
