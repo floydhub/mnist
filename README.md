@@ -44,7 +44,7 @@ optional arguments:
 
 ## MNIST CNN Architecture
 
-![MNIST CNN](images/MNIST_CNN.png)
+![MNIST CNN](images/mnist_convet.png)
 
 ## Run on FloydHub
 
