@@ -36,7 +36,7 @@ except OSError:
 
 app = Flask('MNIST-Classifier')
 
-#  2 possible parameters - checkpoint, zinput(file.cpth)
+
 # Return an Image
 @app.route('/<path:path>', methods=['POST'])
 def geneator_handler(path):
@@ -64,7 +64,7 @@ def geneator_handler(path):
     checkpoint = request.form.get("ckp") or "mnist_convnet_model_epoch_10.pth" # FIX to
 
     # Preprocess, Build and Evaluate
-    Model = ConvNet()
+    Model = ConvNet(ckp=checkpoint)
     Model.image_preprocessing()
     Model.build_model()
     pred = Model.classify()
