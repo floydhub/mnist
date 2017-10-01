@@ -69,7 +69,7 @@ Now it's time to run our training on FloydHub. In this example we will train the
 **Note**: If you want to mount/create a dataset look at the [docs](http://docs.floydhub.com/guides/basics/create_new/#create-a-new-dataset).
 
 ```bash
-$ floyd run --gpu --env pytorch-0.2:py2  --data redeipirati/datasets/pytorch-mnist/1 "python main.py --train"
+$ floyd run --gpu --env pytorch-0.2:py2  --data redeipirati/datasets/pytorch-mnist/1:input "python main.py --train"
 ```
 
 Note:
@@ -110,7 +110,7 @@ with `--mode serve` flag, FloydHub will run the `app.py` file in your project
 and attach it to a dynamic service endpoint:
 
 ```bash
-floyd run --gpu --mode serve --env pytorch-0.2:py2  --data <REPLACE_WITH_JOB_OUTPUT_NAME>
+floyd run --gpu --mode serve --env pytorch-0.2:py2  --data <REPLACE_WITH_JOB_OUTPUT_NAME>:input
 ```
 
 The above command will print out a service endpoint for this job in your terminal console.
