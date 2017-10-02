@@ -6,14 +6,6 @@ This project implements a beginner classification task on [MNIST](http://yann.le
 
 ## Usage
 
-Set local enviroment for training(*no required on FloydHub*):
-
-```bash
-pip install -r requirements.txt
-python main.py
-# CUDA_VISIBLE_DEVICES=2 python main.py  # to specify GPU id to ex. 2
-```
-
 Training/Evaluating script:
 
 ```bash
@@ -40,6 +32,12 @@ optional arguments:
   --log-interval N     how many batches to wait before logging training status
   --train              training a ConvNet model on MNIST dataset
   --evaluate           evaluate a [pre]trained model
+```
+
+If you want to use more GPUs set `CUDA_VISIBLE_DEVICES` as bash variable then run your script:
+
+```bash
+# CUDA_VISIBLE_DEVICES=2 python main.py  # to specify GPU id to ex. 2
 ```
 
 ## MNIST CNN Architecture
