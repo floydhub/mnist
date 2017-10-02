@@ -63,9 +63,9 @@ $ floyd init mnist
 
 ### Training
 
-This project will automatically dowload and process the [MNIST](http://yann.lecun.com/exdb/mnist/) dataset for you, moreover I have already [uploaded it as FloydHub dataset](https://www.floydhub.com/redeipirati/datasets/pytorch-mnist) so that you can try and familiarize with `--data` parameter which mount the specified volume(datasets/model) inside the container of your FloydHub istance.
+This project will automatically dowload and process the [MNIST](http://yann.lecun.com/exdb/mnist/) dataset for you, moreover I have already [uploaded it as FloydHub dataset](https://www.floydhub.com/redeipirati/datasets/pytorch-mnist) so that you can try and familiarize with `--data` parameter which mount the specified volume(datasets/model) inside the container of your FloydHub instance.
 
-Now it's time to run our training on FloydHub. In this example we will train the model for 10 epochs with a gpu istance and with cuda enabled.
+Now it's time to run our training on FloydHub. In this example we will train the model for 10 epochs with a gpu instance and with cuda enabled.
 **Note**: If you want to mount/create a dataset look at the [docs](http://docs.floydhub.com/guides/basics/create_new/#create-a-new-dataset).
 
 ```bash
@@ -73,13 +73,13 @@ $ floyd run --gpu --env pytorch-0.2:py2  --data redeipirati/datasets/pytorch-mni
 ```
 
 Note:
-- `--gpu` run your job on a FloydHub GPU istance
+- `--gpu` run your job on a FloydHub GPU instance
 - `--env pytorch-0.2:py2` prepares a pytorch environment for python 2.
 - `--data redeipirati/datasets/pytorch-mnist/1` mounts the pytorch mnist dataset in the /input folder inside the container for our job so that we do not need to dowload it at training time.
 
 
 You can follow along the progress by using the [logs](http://docs.floydhub.com/commands/logs/) command.
-The training should take about 2 minutes on a GPU istance and about 15 minutes on a CPU one.
+The training should take about 2 minutes on a GPU instance and about 15 minutes on a CPU one.
 
 ### Evaluating
 
@@ -121,7 +121,7 @@ The service endpoint will take a couple minutes to become ready. Once it's up, y
 # curl -X POST -F "file=@<HANDWRITTEN_IMAGE>" -F "ckp=<MODEL_CHECKPOINT>" <SERVICE_ENDPOINT>
 
 # e.g. of a POST req
-curl -X POST -F "file=@./test/images/1.png" https://www.floydhub.com/expose/hellllllllllllllo!!!!
+curl -X POST -F "file=@./test/images/1.png" https://www.floydhub.com/expose/BhZCFAKom6Z8RptVKskHZW
 ```
 
 Any job running in serving mode will stay up until it reaches maximum runtime. So
