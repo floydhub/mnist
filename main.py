@@ -61,7 +61,6 @@ kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
 # Load MNIST only if training
 if args.train:
     train_loader = torch.utils.data.DataLoader(
-        # datasets.MNIST('../data', train=True, download=True,
         datasets.MNIST(root=args.dataroot, train=True, download=True,
                        transform=transforms.Compose([
                            transforms.ToTensor(),
@@ -69,7 +68,6 @@ if args.train:
                        ])),
         batch_size=args.batch_size, shuffle=True, **kwargs)
     test_loader = torch.utils.data.DataLoader(
-        # datasets.MNIST('../data', train=False, transform=transforms.Compose([
         datasets.MNIST(root=args.dataroot, train=False, transform=transforms.Compose([
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
@@ -181,7 +179,8 @@ def test_image():
             data = data.cuda()
         data = Variable(data, volatile=True)
         output = model(data)
-        print ("Images: ", next(names), ", Classified as: ", output.data.max(1, keepdim=True)[1])
+        # TODO: label = numpy.asscalar(output.data.max(1, keepdim=True)[1])
+        print ("Images: " + next(names) + ", Classified as: "+ output.data.max(1, keepdim=True)[1])
 
 # Train?
 if args.train:

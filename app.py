@@ -71,6 +71,7 @@ def geneator_handler(path):
 
     # Return classification and remove uploaded file
     # output = "Images: " + file.filename + ", Classified as: " + pred.data.max(1, keepdim=True)[1]
+    # TODO: label = numpy.asscalar(output.data.max(1, keepdim=True)[1])
     output = "Images: {file}, Classified as {pred}".format(file=file.filename,
         pred=pred.data.max(1, keepdim=True)[1])
     os.remove(input_filepath)
