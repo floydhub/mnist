@@ -61,7 +61,7 @@ def geneator_handler(path):
     input_filepath = os.path.join(image_folder, filename)
     file.save(input_filepath)
     # Get ckp
-    checkpoint = request.form.get("ckp") or "mnist_convnet_model_epoch_10.pth" # FIX to
+    checkpoint = request.form.get("ckp") or "/input/mnist_convnet_model_epoch_10.pth" # FIX to
 
     # Preprocess, Build and Evaluate
     Model = ConvNet(ckp=checkpoint)
