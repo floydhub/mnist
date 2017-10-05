@@ -1,6 +1,7 @@
 from __future__ import print_function
 import argparse
 import os
+import numpy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -179,8 +180,8 @@ def test_image():
             data = data.cuda()
         data = Variable(data, volatile=True)
         output = model(data)
-        # TODO: label = numpy.asscalar(output.data.max(1, keepdim=True)[1])
-        print ("Images: " + next(names) + ", Classified as: "+ output.data.max(1, keepdim=True)[1])
+        label = numpy.asscalar(output.data.max(1, keepdim=True)[1].cpu().numpy())
+        print ("Images: " + next(names) + ", Classified as: " + label)
 
 # Train?
 if args.train:

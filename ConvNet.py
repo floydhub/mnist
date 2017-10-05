@@ -1,5 +1,6 @@
 from __future__ import print_function
 import argparse
+import numpy
 import os
 import torch
 import torch.nn as nn
@@ -97,4 +98,5 @@ class ConvNet(object):
 				data = data.cuda()
 			data = Variable(data, volatile=True)
 			output = self._model(data)
+			label = numpy.asscalar(output.data.max(1, keepdim=True)[1].cpu().numpy())
 			return output
