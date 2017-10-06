@@ -99,4 +99,4 @@ class ConvNet(object):
 			data = Variable(data, volatile=True)
 			output = self._model(data)
 			label = numpy.asscalar(output.data.max(1, keepdim=True)[1].cpu().numpy())
-			return output
+			return label

@@ -181,7 +181,7 @@ def test_image():
         data = Variable(data, volatile=True)
         output = model(data)
         label = numpy.asscalar(output.data.max(1, keepdim=True)[1].cpu().numpy())
-        print ("Images: " + next(names) + ", Classified as: " + label)
+        print ("Images: " + next(names) + ", Classified as: " + str(label))
 
 # Train?
 if args.train:
