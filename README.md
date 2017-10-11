@@ -135,6 +135,7 @@ Some useful resources on MNIST and ConvNet:
 - [Colah's blog](https://colah.github.io/posts/2014-10-Visualizing-MNIST/)
 - [FloydHub Building your first ConvNet](https://blog.floydhub.com/building-your-first-convnet/)
 - [How Convolutional Neural Networks work - Brandon Rohrer](https://youtu.be/FmpDIaiMIeA)
+- [An Intuitive Explanation of Convolutional Neural Networks](https://ujjwalkarn.me/2016/08/11/intuitive-explanation-convnets/)
 - [Stanford CS231n](https://cs231n.github.io/convolutional-networks/)
 - [Stanford CS231n Winter 2016 - Karpathy](https://youtu.be/NfnWJUyUJYU)
 
