@@ -38,8 +38,8 @@ app = Flask('MNIST-Classifier')
 
 
 # Return an Image
-@app.route('/<path:path>', methods=['POST'])
-def geneator_handler(path):
+@app.route('/', methods=['POST'])
+def geneator_handler():
     """Upload an handwrittend digit image in range [0-9], then
     preprocess and classify"""
     # check if the post request has the file part
@@ -69,9 +69,6 @@ def geneator_handler(path):
     Model.build_model()
     pred = Model.classify()
 
-    # Return classification and remove uploaded file
-    # output = "Images: " + file.filename + ", Classified as: " + pred.data.max(1, keepdim=True)[1]
-    # TODO: label = numpy.asscalar(output.data.max(1, keepdim=True)[1])
     output = "Images: {file}, Classified as {pred}\n".format(file=file.filename,
         pred=int(pred))
     os.remove(input_filepath)
@@ -82,5 +79,6 @@ def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+if __name__ == "__main__":
+    print("* Starting web server... please wait until server has fully started")
+    app.run(host='0.0.0.0', threaded=False)

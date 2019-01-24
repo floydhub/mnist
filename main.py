@@ -16,7 +16,7 @@ from torch.autograd import Variable
 parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
 parser.add_argument('--dataroot', default="/input/" ,help='path to dataset')
 parser.add_argument('--evalf', default="/eval/" ,help='path to evaluate sample')
-parser.add_argument('--outf', default='/output',
+parser.add_argument('--outf', default='models',
                     help='folder to output images and model checkpoints')
 parser.add_argument('--ckpf', default='',
                     help="path to model checkpoint file (to continue training)")
@@ -44,7 +44,8 @@ parser.add_argument('--evaluate', action='store_true',
 
 args = parser.parse_args()
 # use CUDA?
-args.cuda = not args.no_cuda and torch.cuda.is_available()
+use_cuda = not args.no_cuda and torch.cuda.is_available()
+device = torch.device("cuda" if use_cuda else "cpu")
 
 # Is there the outf?
 try:
@@ -53,11 +54,11 @@ except OSError:
     pass
 
 torch.manual_seed(args.seed)
-if args.cuda:
+if use_cuda:
     torch.cuda.manual_seed(args.seed)
 
 # From MNIST to Tensor
-kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
+kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 
 # Load MNIST only if training
 if args.train:
@@ -75,49 +76,45 @@ if args.train:
                        ])),
         batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
+
 class Net(nn.Module):
     """ConvNet -> Max_Pool -> RELU -> ConvNet -> Max_Pool -> RELU -> FC -> RELU -> FC -> SOFTMAX"""
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-        self.conv2_drop = nn.Dropout2d()
-        self.fc1 = nn.Linear(320, 50)
-        self.fc2 = nn.Linear(50, 10)
+        self.conv1 = nn.Conv2d(1, 20, 5, 1)
+        self.conv2 = nn.Conv2d(20, 50, 5, 1)
+        self.fc1 = nn.Linear(4*4*50, 500)
+        self.fc2 = nn.Linear(500, 10)
 
     def forward(self, x):
-        x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-        x = x.view(-1, 320)
+        x = F.relu(self.conv1(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = F.relu(self.conv2(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = x.view(-1, 4*4*50)
         x = F.relu(self.fc1(x))
-        x = F.dropout(x, training=self.training)
         x = self.fc2(x)
-        return F.log_softmax(x)
+        return F.log_softmax(x, dim=1)
 
-model = Net()
-if args.cuda:
-    model.cuda()
+
+model = Net().to(device)
 
 # Load checkpoint
 if args.ckpf != '':
-    if args.cuda:
+    if use_cuda:
         model.load_state_dict(torch.load(args.ckpf))
     else:
         # Load GPU model on CPU
         model.load_state_dict(torch.load(args.ckpf, map_location=lambda storage, loc: storage))
-        model.cpu()
 
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
 
-def train(epoch):
+def train(args, model, device, train_loader, optimizer, epoch):
     """Training"""
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
-        if args.cuda:
-            data, target = data.cuda(), target.cuda()
-        # print (data.size())
-        data, target = Variable(data), Variable(target)
+        data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
         loss = F.nll_loss(output, target)
@@ -126,27 +123,32 @@ def train(epoch):
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.data[0]))
+                100. * batch_idx / len(train_loader), loss.item()))
+            print('{{"metric": "Train - NLL Loss", "value": {}}}'.format(
+        loss.item()))
 
 
-def test():
+def test(args, model, device, test_loader, epoch):
     """Testing"""
     model.eval()
     test_loss = 0
     correct = 0
-    for data, target in test_loader:
-        if args.cuda:
-            data, target = data.cuda(), target.cuda()
-        data, target = Variable(data, volatile=True), Variable(target)
-        output = model(data)
-        test_loss += F.nll_loss(output, target, size_average=False).data[0] # sum up batch loss
-        pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
-        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            test_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
+            pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
+            correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
+    print('{{"metric": "Eval - NLL Loss", "value": {}, "epoch": {}}}'.format(
+        test_loss, epoch))
+    print('{{"metric": "Eval - Accuracy", "value": {}, "epoch": {}}}'.format(
+        100. * correct / len(test_loader.dataset), epoch))
 
 
 def test_image():
@@ -166,7 +168,7 @@ def test_image():
                 return img.convert('L').resize((sqrWidth, sqrWidth))
 
     eval_loader = torch.utils.data.DataLoader(ImageFolder(root=args.evalf, transform=transforms.Compose([
-                       transforms.Scale(28),
+                       transforms.Resize(28),
                        transforms.CenterCrop(28),
                        transforms.ToTensor(),
                        transforms.Normalize((0.1307,), (0.3081,))
@@ -175,20 +177,20 @@ def test_image():
     # Name generator
     names = get_images_name(os.path.join(args.evalf, "images"))
     model.eval()
-    for data, _ in eval_loader:
-        if args.cuda:
-            data = data.cuda()
-        data = Variable(data, volatile=True)
-        output = model(data)
-        label = numpy.asscalar(output.data.max(1, keepdim=True)[1].cpu().numpy())
-        print ("Images: " + next(names) + ", Classified as: " + str(label))
+    with torch.no_grad():
+        for data, target in eval_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            label = output.argmax(dim=1, keepdim=True).item()
+            print ("Images: " + next(names) + ", Classified as: " + str(label))
 
 # Train?
 if args.train:
     # Train + Test per epoch
     for epoch in range(1, args.epochs + 1):
-        train(epoch)
-        test()
+        train(args, model, device, train_loader, optimizer, epoch)
+        test(args, model, device, test_loader, epoch)
+
     # Do checkpointing - Is saved in outf
     torch.save(model.state_dict(), '%s/mnist_convnet_model_epoch_%d.pth' % (args.outf, args.epochs))
 
